@@ -3,10 +3,17 @@ const core = require('@actions/core');
 const command = require('@actions/core/lib/command');
 const got = require('got').default;
 const jsonata = require('jsonata');
+const { platform } = require('node:process');
 const { auth: { retrieveToken }, secrets: { getSecrets } } = require('./index');
 
 const AUTH_METHODS = ['approle', 'token', 'github', 'jwt', 'kubernetes', 'ldap', 'userpass'];
 const ENCODING_TYPES = ['base64', 'hex', 'utf8'];
+
+const errorCodes =  got.defaults.options.retry.errorCodes;
+if (platform === 'darwin') {
+    errorCodes.splice(errorCodes.indexOf('ECONNRESET'), 1);
+}
+
 
 async function exportSecrets() {
     const vaultUrl = core.getInput('url', { required: true });
@@ -31,6 +38,7 @@ async function exportSecrets() {
         prefixUrl: vaultUrl,
         headers: {},
         https: {},
+        errorCodes,
         retry: {
             statusCodes: [
                 ...got.defaults.options.retry.statusCodes,
