@@ -18516,10 +18516,17 @@ const core = __nccwpck_require__(2186);
 const command = __nccwpck_require__(7351);
 const got = (__nccwpck_require__(3061)["default"]);
 const jsonata = __nccwpck_require__(4245);
+const { platform } = __nccwpck_require__(7742);
 const { auth: { retrieveToken }, secrets: { getSecrets } } = __nccwpck_require__(4351);
 
 const AUTH_METHODS = ['approle', 'token', 'github', 'jwt', 'kubernetes', 'ldap', 'userpass'];
 const ENCODING_TYPES = ['base64', 'hex', 'utf8'];
+
+const errorCodes =  got.defaults.options.retry.errorCodes;
+if (platform === 'darwin') {
+    errorCodes.splice(errorCodes.indexOf('ECONNRESET'), 1);
+}
+
 
 async function exportSecrets() {
     const vaultUrl = core.getInput('url', { required: true });
@@ -18544,6 +18551,7 @@ async function exportSecrets() {
         prefixUrl: vaultUrl,
         headers: {},
         https: {},
+        errorCodes,
         retry: {
             statusCodes: [
                 ...got.defaults.options.retry.statusCodes,
@@ -19109,6 +19117,14 @@ module.exports = require("https");
 
 "use strict";
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 7742:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:process");
 
 /***/ }),
 
